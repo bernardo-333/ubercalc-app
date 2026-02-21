@@ -1,8 +1,54 @@
-// CONFIGURAÇÕES BASE E BANCO DE DADOS (LOCALSTORAGE)
+// CONFIGURAÇÕES BASE E BANCO DE DADOS (FIREBASE E LOCALSTORAGE FALLBACK)
 const defaultConfig = { savingsPercentage: 10, totalVehicleKm: 0, theme: 'light', alertKm: 500 };
 let appData = { records: [], maintenance: [], config: { ...defaultConfig } };
 
-document.addEventListener('DOMContentLoaded', () => { initApp(); });
+// INITIALIZE FIREBASE
+const firebaseConfig = {
+    apiKey: "AIzaSyCcdWgUHkBK3JTZIA-LPmbExPVauARiagc",
+    authDomain: "ubercalc-app.firebaseapp.com",
+    projectId: "ubercalc-app",
+    storageBucket: "ubercalc-app.firebasestorage.app",
+    messagingSenderId: "877975340679",
+    appId: "1:877975340679:web:cd48c03bd9c68fa2ef9a22"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+let currentUser = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Listen for auth state changes
+    auth.onAuthStateChanged((user) => {
+        const loginScreen = document.getElementById('login-screen');
+        if (user) {
+            currentUser = user;
+            if (loginScreen) loginScreen.style.display = 'none';
+            initApp();
+        } else {
+            currentUser = null;
+            if (loginScreen) {
+                loginScreen.style.display = 'flex';
+                document.getElementById('btn-login-google').style.display = 'flex';
+                document.getElementById('login-loading').style.display = 'none';
+            }
+        }
+    });
+});
+
+function loginGoogle() {
+    document.getElementById('btn-login-google').style.display = 'none';
+    document.getElementById('login-loading').style.display = 'block';
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).catch((error) => {
+        console.error("Erro no login", error);
+        document.getElementById('btn-login-google').style.display = 'flex';
+        document.getElementById('login-loading').style.display = 'none';
+        alert('Erro ao fazer login: ' + error.message);
+    });
+}
+
+// Tenta deslogar (adicionar botão futuramente se quiser)
+function logout() { auth.signOut(); }
 
 // HELPER FIX TIMEZONE
 function getLocalTodayISO() {
@@ -20,14 +66,45 @@ function initApp() {
 }
 
 function loadData() {
-    const saved = localStorage.getItem('ubercalc_v3');
-    if (saved) {
-        const parsed = JSON.parse(saved);
-        appData = { records: parsed.records || [], maintenance: parsed.maintenance || [], config: { ...defaultConfig, ...(parsed.config || {}) } };
-    }
+    if (!currentUser) return;
+
+    // Lê do Firebase em Tempo Real (Realtime Database)
+    db.ref('users/' + currentUser.uid).on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            appData = {
+                records: data.records || [],
+                maintenance: data.maintenance || [],
+                config: { ...defaultConfig, ...(data.config || {}) }
+            };
+        } else {
+            // Novo usuário, estado vazio
+            appData = { records: [], maintenance: [], config: { ...defaultConfig } };
+        }
+
+        document.getElementById('input-date').value = getLocalTodayISO();
+        applyTheme();
+        loadTodayData();
+        calculateVirtualReserve();
+
+        // Se o usuário estiver na aba hitórico, atualiza também
+        if (document.getElementById('tab-historico').classList.contains('active')) {
+            loadHistoryTabs();
+        }
+        if (document.getElementById('tab-manutencao').classList.contains('active')) {
+            loadMaintenance();
+        }
+    });
 }
 
-function saveData() { localStorage.setItem('ubercalc_v3', JSON.stringify(appData)); }
+function saveData() {
+    if (!currentUser) return;
+    // Salva espelho exato no Firebase
+    db.ref('users/' + currentUser.uid).set(appData);
+
+    // Salva backup local para offline
+    localStorage.setItem('ubercalc_v3_backup', JSON.stringify(appData));
+}
 
 function showToast(msg, type = 'success') {
     const toast = document.getElementById('toast');
