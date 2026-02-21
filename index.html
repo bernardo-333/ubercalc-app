@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#5c7cfa">
+    <title>UberCalc - App do Douglas</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3208/3208759.png">
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header id="main-header">
+        <div class="header-flex">
+            <span id="header-title">Hoje</span>
+            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 14px; opacity: 0.7;" onclick="exportData()"
+                title="Exportar Backup"></i>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+
+            <section id="tab-hoje" class="tab-content active">
+                <div class="hero-section">
+                    <i class="fa-solid fa-car"></i>
+                    <h1>UberCalc</h1>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-title-sm"><i class="fa-solid fa-gauge text-primary"></i> KM Rodados</div>
+                        <div class="card-value text-primary" id="today-km">0 km</div>
+                    </div>
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-title-sm"><i class="fa-solid fa-money-bill-wave text-success"></i> Ganhos</div>
+                        <div class="card-value text-success" id="today-income">R$ 0,00</div>
+                    </div>
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-title-sm"><i class="fa-solid fa-gas-pump text-danger"></i> Gastos</div>
+                        <div class="card-value text-danger" id="today-expenses">R$ 0,00</div>
+                    </div>
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="card-title-sm"><i class="fa-solid fa-wallet text-success"></i> Lucro</div>
+                        <div class="card-value text-success" id="today-profit">R$ 0,00</div>
+                    </div>
+                </div>
+
+                <div id="savings-card" class="card"
+                    style="display: none; border: 2px solid var(--primary); background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(99,102,241,0.01)); position: relative; overflow: hidden; margin-top: 20px;">
+                    <div
+                        style="position: absolute; top: -10px; right: 10px; font-size: 70px; opacity: 0.05; color: var(--primary);">
+                        <i class="fa-solid fa-piggy-bank"></i>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1;">
+                        <div>
+                            <div
+                                style="font-size: 12px; font-weight: 700; color: var(--primary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                <i class="fa-solid fa-bell"></i> Lembrete Reserva
+                            </div>
+                            <div style="font-size: 26px; font-weight: 800; color: var(--text-dark); margin: 2px 0;"
+                                id="savings-amount-display">R$ 0,00</div>
+                            <div style="font-size: 13px; color: var(--text-gray);">Meta: <span
+                                    id="savings-percent-display" style="font-weight:600;">10</span>% do lucro</div>
+                        </div>
+                        <button id="btn-save-reserve" class="btn"
+                            style="width: auto; padding: 12px 20px; font-size: 14px; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);"
+                            onclick="markAsSavedToday()">
+                            <i class="fa-solid fa-check"></i> Guardei
+                        </button>
+                    </div>
+                </div>
+
+                <div id="savings-done-card" class="card"
+                    style="display: none; margin-top: 20px; padding: 16px; border-left: 4px solid var(--success); background: rgba(16,185,129,0.05);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span
+                            style="font-size: 14px; font-weight: 600; color: var(--text-gray); display:flex; align-items:center;">
+                            <i class="fa-solid fa-circle-check text-success"
+                                style="margin-right: 8px; font-size: 18px;"></i> Reserva guardada
+                        </span>
+                        <span style="font-size: 15px; font-weight: 700; color: var(--success);"
+                            id="savings-done-amount">R$ 0,00</span>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-clipboard-list text-primary"></i> Lançar Registro</h3>
+                    </div>
+                    <form id="form-registro" onsubmit="return salvarRegistro(event)">
+                        <div class="grid-2 grid-mobile-1">
+                            <div class="form-group">
+                                <label>Data *</label>
+                                <input type="date" id="input-date" required>
+                            </div>
+                            <div class="form-group">
+                                <label>KM do Turno/Dia *</label>
+                                <input type="number" inputmode="decimal" id="input-km" placeholder="Ex: 150" step="0.1"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div
+                            style="font-size: 12px; font-weight: bold; color: var(--text-gray); margin: 10px 0; text-transform: uppercase;">
+                            Entradas (R$)</div>
+                        <div class="grid-2 grid-mobile-1">
+                            <div class="form-group">
+                                <label>Uber</label>
+                                <input type="number" inputmode="decimal" id="input-uber" placeholder="0,00" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>99</label>
+                                <input type="number" inputmode="decimal" id="input-99" placeholder="0,00" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>Outros (Particular/Ifood)</label>
+                                <input type="number" inputmode="decimal" id="input-other-income" placeholder="0,00"
+                                    step="0.01">
+                            </div>
+                        </div>
+
+                        <div
+                            style="font-size: 12px; font-weight: bold; color: var(--text-gray); margin: 10px 0; text-transform: uppercase;">
+                            Saídas (R$)</div>
+                        <div class="grid-2 grid-mobile-1">
+                            <div class="form-group">
+                                <label>Combustível</label>
+                                <input type="number" inputmode="decimal" id="input-fuel" placeholder="0,00" step="0.01">
+                            </div>
+                            <div class="form-group">
+                                <label>Alimentação/Outros</label>
+                                <input type="number" inputmode="decimal" id="input-other-expense" placeholder="0,00"
+                                    step="0.01">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn" id="btn-save"><i class="fa-solid fa-floppy-disk"></i> Salvar
+                            Registro</button>
+                    </form>
+                </div>
+            </section>
+
+            <section id="tab-historico" class="tab-content">
+                <div class="segmented-control">
+                    <div class="segment active" onclick="showHistory('diario', this)">Diário</div>
+                    <div class="segment" onclick="showHistory('semanal', this)">Semanal</div>
+                    <div class="segment" onclick="showHistory('mensal', this)">Mensal</div>
+                    <div class="segment" onclick="showHistory('geral', this)">Geral</div>
+                </div>
+
+                <div id="history-diario" class="report-section active">
+                    <div id="history-diario-content"></div>
+                </div>
+                <div id="history-semanal" class="report-section">
+                    <div id="history-semanal-content"></div>
+                </div>
+                <div id="history-mensal" class="report-section">
+                    <div id="history-mensal-content"></div>
+                </div>
+                <div id="history-geral" class="report-section">
+                    <div id="history-geral-content"></div>
+                </div>
+            </section>
+
+            <section id="tab-manutencao" class="tab-content">
+                <div class="card" style="border: 2px solid var(--primary); background: rgba(92, 124, 250, 0.05);">
+                    <div class="card-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+                        <div>
+                            <div class="card-title-sm"><i class="fa-solid fa-piggy-bank text-primary"
+                                    style="font-size: 18px;"></i> Saldo Virtual da Reserva</div>
+                            <div class="card-value text-primary" id="reserva-total">R$ 0,00</div>
+                            <div style="font-size: 12px; color: var(--text-gray); margin-top: 5px;">Calculado com base
+                                em todo o histórico de lucros.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="color: var(--text-gray); display: flex; align-items: center; gap: 8px;"><i
+                            class="fa-solid fa-car-side text-primary"></i> KM do Veículo:</span>
+                    <span style="font-weight: 700; font-size: 16px;" id="vehicle-current-km">0 km</span>
+                </div>
+
+                <div id="maintenance-alerts"></div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin: 25px 0 15px 0;">
+                    <h3 style="font-size: 16px; display: flex; align-items: center; gap: 8px;"><i
+                            class="fa-solid fa-wrench"></i> Peças e Serviços</h3>
+                    <button class="btn btn-sm" onclick="showAddMaintenanceModal()"><i class="fa-solid fa-plus"></i>
+                        Novo</button>
+                </div>
+
+                <div id="maintenance-list">
+                    <div class="maint-category">
+                        <h4>Óleo e Filtros</h4>
+                        <div id="oil-maintenance"></div>
+                    </div>
+                    <div class="maint-category">
+                        <h4>Freios e Pneus</h4>
+                        <div id="general-maintenance"></div>
+                    </div>
+                    <div class="maint-category">
+                        <h4>Outros Filtros</h4>
+                        <div id="air-maintenance"></div>
+                        <div id="fuel-maintenance"></div>
+                        <div id="cabin-maintenance"></div>
+                    </div>
+                </div>
+
+                <div style="margin: 30px 0 15px 0;">
+                    <h3 style="font-size: 16px; display: flex; align-items: center; gap: 8px; color: var(--text-gray);">
+                        <i class="fa-solid fa-clock-rotate-left"></i> Histórico Concluído
+                    </h3>
+                </div>
+                <div id="completed-maintenance-list"></div>
+            </section>
+
+            <section id="tab-config" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-sliders text-primary"></i> Ajustes do App</h3>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tema de Cores</label>
+                        <div class="theme-option" id="theme-light" onclick="setTheme('light')">
+                            <div><strong>Claro</strong><br><small>Visual padrão e limpo</small></div>
+                            <i class="fa-solid fa-check text-primary check-icon" id="check-light"
+                                style="display:none"></i>
+                        </div>
+                        <div class="theme-option" id="theme-dark" onclick="setTheme('dark')">
+                            <div><strong>Escuro</strong><br><small>Melhor para dirigir à noite</small></div>
+                            <i class="fa-solid fa-check text-primary check-icon" id="check-dark"
+                                style="display:none"></i>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 25px;">
+                        <label>Porcentagem de Reserva (%)</label>
+                        <input type="number" id="config-percentage" min="0" max="100" value="10">
+                        <small style="color: var(--text-gray);">Define quanto do lucro diário vai para
+                            manutenção.</small>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 25px;">
+                        <label>KM Atual do Painel (Odômetro Mestre)</label>
+                        <input type="number" id="config-km" min="0" value="0">
+                    </div>
+
+                    <button class="btn" onclick="salvarConfig()" style="margin-top: 20px;"><i
+                            class="fa-solid fa-floppy-disk"></i> Salvar Configurações</button>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <nav>
+        <div class="nav-container">
+            <div class="nav-item active" onclick="showTab('hoje', 'Hoje', this)">
+                <i class="fa-solid fa-house"></i>
+                <span>Hoje</span>
+            </div>
+            <div class="nav-item" onclick="showTab('historico', 'Histórico', this)">
+                <i class="fa-regular fa-calendar-days"></i>
+                <span>Histórico</span>
+            </div>
+            <div class="nav-item" onclick="showTab('manutencao', 'Manutenção', this)">
+                <div class="alert-dot" id="nav-maint-alert"></div>
+                <i class="fa-solid fa-wrench"></i>
+                <span>Mecânica</span>
+            </div>
+            <div class="nav-item" onclick="showTab('config', 'Configurações', this)">
+                <i class="fa-solid fa-gear"></i>
+                <span>Configs</span>
+            </div>
+        </div>
+    </nav>
+
+    <div id="maintenance-modal" class="modal" onclick="if(event.target === this) closeMaintenanceModal()">
+        <div class="modal-content card">
+            <div class="card-header">
+                <h3>Novo Serviço/Peça</h3>
+                <i class="fa-solid fa-xmark" style="font-size: 20px; color: var(--text-gray); cursor: pointer;"
+                    onclick="closeMaintenanceModal()"></i>
+            </div>
+            <form id="form-maintenance" onsubmit="return saveMaintenance(event)">
+                <div class="form-group">
+                    <label>Tipo de Serviço</label>
+                    <select id="maint-type" required>
+                        <option value="">Selecione...</option>
+                        <option value="oil_change">Troca de Óleo do Motor</option>
+                        <option value="oil_filter">Filtro de Óleo</option>
+                        <option value="air_filter">Filtro de Ar</option>
+                        <option value="cabin_filter">Filtro do Ar Cond. (Cabine)</option>
+                        <option value="fuel_filter">Filtro de Combustível</option>
+                        <option value="brake_pads">Pastilhas de Freio</option>
+                        <option value="tires">Troca de Pneus</option>
+                        <option value="alignment">Alinhamento/Balanceamento</option>
+                        <option value="general">Outro Serviço Geral</option>
+                    </select>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Data</label>
+                        <input type="date" id="maint-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Custo Estimado (R$)</label>
+                        <input type="number" id="maint-cost" step="0.01" placeholder="0,00">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>KM da Troca</label>
+                        <input type="number" id="maint-km" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Próxima Troca (KM)</label>
+                        <input type="number" id="maint-next-km" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn"><i class="fa-solid fa-check"></i> Salvar Manutenção</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then((reg) => console.log('ServiceWorker registrado', reg.scope))
+                    .catch((err) => console.log('Falha no ServiceWorker', err));
+            });
+        }
+    </script>
+</body>
+
+</html>
