@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ubercalc-v2';
+const CACHE_NAME = 'ubercalc-v3';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',

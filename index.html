@@ -368,8 +368,23 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then((reg) => console.log('ServiceWorker registrado', reg.scope))
+                // Adicionando um timestamp pequeno para o Chrome nunca cachear o arquivo do service-worker em si
+                navigator.serviceWorker.register('./service-worker.js?v=' + new Date().getTime())
+                    .then((reg) => {
+                        console.log('ServiceWorker registrado', reg.scope);
+
+                        // Fica escutando se há alguma atualização no GitHub
+                        reg.onupdatefound = () => {
+                            const installingWorker = reg.installing;
+                            installingWorker.onstatechange = () => {
+                                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // Limpa os caches antigos e recarrega a página automaticamente com o código novo!
+                                    console.log('Update found! Forcing reload...');
+                                    window.location.reload(true);
+                                }
+                            };
+                        };
+                    })
                     .catch((err) => console.log('Falha no ServiceWorker', err));
             });
         }
