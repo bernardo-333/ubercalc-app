@@ -368,8 +368,8 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // Adicionando um timestamp pequeno para o Chrome nunca cachear o arquivo do service-worker em si
-                navigator.serviceWorker.register('./service-worker.js?v=' + new Date().getTime())
+                // Registro normal sem timestamp estático para não dar loop
+                navigator.serviceWorker.register('./service-worker.js')
                     .then((reg) => {
                         console.log('ServiceWorker registrado', reg.scope);
 
